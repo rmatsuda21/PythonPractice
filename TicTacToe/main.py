@@ -4,11 +4,14 @@ import os
 def printBoard(board):
     for index, row in enumerate(board):
         for _index, cell in enumerate(row):
-            _cell = index * 3 + _index if cell == -1 else ("X" if cell == 1 else "O")
+            _cell = " " if _index == 0 else ""
+            _cell += (
+                str(index * 3 + _index) if cell == -1 else ("X" if cell == 1 else "O")
+            )
             _end = " | " if _index != 2 else "\n"
             print(_cell, end=_end)
         if index != 2:
-            print("-" * 10)
+            print("-" * 11)
     print()
 
 
@@ -46,12 +49,28 @@ def displayWelcomeMessage():
     print("Welcome to Tic-Tac-Toe!\n")
 
 
-def getMove(currPlayer):
+def moveIsValid(move, board):
+    if move == -1 or not move.isnumeric():
+        return False
+
+    move = int(move)
+
+    row = move // 3
+    cell = move % 3
+
+    return (0 <= move and move <= 8) and (board[row][cell] == -1)
+
+
+def getMove(currPlayer, board):
     move = ""
-    while (not move.isnumeric()) or (
-        move.isnumeric() and (0 >= int(move) or int(move) >= 8)
-    ):
+    valid = False
+
+    while not valid:
         move = input(f"Player {currPlayer} Move: ")
+        valid = moveIsValid(move, board)
+
+        if not valid:
+            print("Move not valid!")
 
     return int(move)
 
@@ -63,34 +82,42 @@ def placePiece(currPlayer, move, board):
 
 
 def main():
-    currPlayer = 0
-    board = [[-1 for _ in range(3)] for _ in range(3)]
+    quit = False
 
-    tie = False
-    winner = -1
+    while not quit:
+        currPlayer = 0
+        board = [[-1 for _ in range(3)] for _ in range(3)]
 
-    clearScreen()
-    displayWelcomeMessage()
-
-    printBoard(board)
-
-    while not tie and winner == -1:
-        move = getMove(currPlayer)
-        placePiece(currPlayer, move, board)
-
-        currPlayer = (currPlayer + 1) % 2
+        tie = False
+        winner = -1
 
         clearScreen()
         displayWelcomeMessage()
+
         printBoard(board)
 
-        tie = isTie(board)
-        winner = getWinner(board)
+        while not tie and winner == -1:
+            move = getMove(currPlayer, board)
+            placePiece(currPlayer, move, board)
 
-    if tie:
-        print("Tie Game!")
-    else:
-        print(f"Player {winner} Wins!")
+            currPlayer = (currPlayer + 1) % 2
+
+            clearScreen()
+            displayWelcomeMessage()
+            printBoard(board)
+
+            tie = isTie(board)
+            winner = getWinner(board)
+
+        if tie:
+            print("Tie Game!")
+        else:
+            print(f"Player {winner} Wins!")
+
+        playAgain = input("\nPlay again? (y / n):")
+
+        if not playAgain == "y":
+            quit = True
 
 
 if __name__ == "__main__":
